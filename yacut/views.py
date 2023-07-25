@@ -5,7 +5,7 @@ from flask import render_template, flash, redirect
 from . import app, db
 from .forms import URLMapForm
 from .models import URLMap
-from .conf import (
+from .app_constants import (
     MAX_SHORT_URL_LENGTH, AVAILABLE_CHARS_FOR_SHORT_ID,
     LINK_HOST
 )

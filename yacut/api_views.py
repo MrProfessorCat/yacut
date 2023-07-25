@@ -4,7 +4,7 @@ from http import HTTPStatus
 from . import app, db
 from .error_handlers import InvalidAPIUsage
 from .models import URLMap
-from .conf import MAX_SHORT_URL_LENGTH, AVAILABLE_CHARS_FOR_SHORT_ID
+from .app_constants import MAX_SHORT_URL_LENGTH, AVAILABLE_CHARS_FOR_SHORT_ID
 from .views import generate_short_id
 
 
