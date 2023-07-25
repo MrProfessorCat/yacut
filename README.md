@@ -1,7 +1,13 @@
+# Сервис YaCut
+
+Сервис позволяет генерировать короткие ссылки.
+
+## Установка
+
 Клонировать репозиторий и перейти в него в командной строке:
 
 ```
-git clone 
+git clone git@github.com:MrProfessorCat/yacut.git
 ```
 
 ```
@@ -34,4 +40,8 @@ python3 -m pip install --upgrade pip
 
 ```
 pip install -r requirements.txt
+```
+
+```
+flask run
 ```
