@@ -33,6 +33,13 @@ class URLMap(db.Model):
         return URLMap.query.filter_by(short=short_id).first()
 
     @staticmethod
+    def get_or_404(short_id):
+        data = URLMap.query.filter_by(short=short_id).first()
+        if not data:
+            raise InvalidAPIUsage('Указанный id не найден', HTTPStatus.NOT_FOUND)
+        return data
+
+    @staticmethod
     def is_short_id_correct(short_id):
         return (
             len(short_id) <= MAX_SHORT_URL_LENGTH and
