@@ -1,4 +1,5 @@
 from datetime import datetime
+from http import HTTPStatus
 import random
 import re
 
@@ -6,6 +7,7 @@ from . import db
 from .app_constants import (
     AVAILABLE_CHARS_FOR_SHORT_ID, MAX_SHORT_URL_LENGTH
 )
+from .error_handlers import InvalidAPIUsage
 
 
 class URLMap(db.Model):
@@ -29,12 +31,12 @@ class URLMap(db.Model):
     def get(short_id):
         return URLMap.query.filter_by(short=short_id).first()
 
-    # @staticmethod
-    # def get_or_404(short_id):
-    #     data = URLMap.get(short_id)
-    #     if not data:
-    #         abort(404)
-    #     return data
+    @staticmethod
+    def get_or_404(short_id):
+        data = URLMap.get(short_id)
+        if not data:
+            raise InvalidAPIUsage('Указанный id не найден', HTTPStatus.NOT_FOUND)
+        return data
 
     @staticmethod
     def is_short_id_correct(short_id):
