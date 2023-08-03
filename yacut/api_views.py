@@ -23,7 +23,10 @@ def create_id():
         data['custom_id'] if 'custom_id' in data and data['custom_id']
         else None
     )
-    link = URLMap.save(data['url'], custom_id)
+    try:
+        link = URLMap(original=data['url'], short=custom_id).save()
+    except ValueError as error:
+        raise InvalidAPIUsage(str(error))
     return jsonify(
         {
             'url': data['url'],
@@ -34,5 +37,7 @@ def create_id():
 
 @app.route('/api/id/<string:short_id>/', methods=('GET',))
 def get_url(short_id):
-    data = URLMap.get_or_404(short_id)
+    data = URLMap.get(short_id)
+    if not data:
+        raise InvalidAPIUsage('Указанный id не найден', HTTPStatus.NOT_FOUND)
     return jsonify({'url': data.original}), HTTPStatus.OK

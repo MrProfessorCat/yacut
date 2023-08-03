@@ -2,7 +2,6 @@ from flask import render_template, flash, redirect
 
 from . import app
 from .app_constants import LINK_HOST
-from .error_handlers import InvalidAPIUsage
 from .forms import URLMapForm
 from .models import URLMap
 
@@ -16,9 +15,11 @@ def index_view():
             flash(f'Имя {short_id} уже занято!', 'validation')
             return render_template('index.html', form=form)
         try:
-            link = URLMap.save(form.original_link.data, form.custom_id.data)
-        except InvalidAPIUsage as error:
-            flash(error.message, 'validation')
+            link = URLMap(
+                original=form.original_link.data,
+                short=form.custom_id.data).save()
+        except ValueError as error:
+            flash(str(error), 'validation')
             return render_template('index.html', form=form)
         flash(f'{LINK_HOST}{link.short}', 'short_id_created')
     return render_template('index.html', form=form)
