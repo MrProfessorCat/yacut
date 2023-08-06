@@ -4,6 +4,14 @@ from http import HTTPStatus
 from . import app, db
 
 
+class NameAlreadyExists(ValueError):
+    pass
+
+
+class IncorrectName(ValueError):
+    pass
+
+
 class InvalidAPIUsage(Exception):
     status_code = HTTPStatus.BAD_REQUEST
 

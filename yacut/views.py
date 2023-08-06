@@ -4,6 +4,7 @@ from . import app
 from .app_constants import LINK_HOST
 from .forms import URLMapForm
 from .models import URLMap
+from .error_handlers import NameAlreadyExists, IncorrectName
 
 
 @app.route('/', methods=('GET', 'POST'))
@@ -11,15 +12,15 @@ def index_view():
     form = URLMapForm()
     if form.validate_on_submit():
         short_id = form.custom_id.data
-        if URLMap.get(short_id):
-            flash(f'Имя {short_id} уже занято!', 'validation')
-            return render_template('index.html', form=form)
         try:
             link = URLMap(
                 original=form.original_link.data,
-                short=form.custom_id.data).save()
-        except ValueError as error:
+                short=short_id).save()
+        except IncorrectName as error:
             flash(str(error), 'validation')
+            return render_template('index.html', form=form)
+        except NameAlreadyExists:
+            flash(f'Имя {short_id} уже занято!', 'validation')
             return render_template('index.html', form=form)
         flash(f'{LINK_HOST}{link.short}', 'short_id_created')
     return render_template('index.html', form=form)
@@ -27,5 +28,5 @@ def index_view():
 
 @app.route('/<string:short_id>', methods=('GET',))
 def short_id(short_id):
-    data = URLMap.query.filter_by(short=short_id).first_or_404()
+    data = URLMap.get_or_404(short_id)
     return redirect(data.original)

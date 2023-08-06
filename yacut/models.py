@@ -1,5 +1,4 @@
 from datetime import datetime
-from http import HTTPStatus
 import random
 import re
 
@@ -7,7 +6,7 @@ from . import db
 from .app_constants import (
     AVAILABLE_CHARS_FOR_SHORT_ID, MAX_SHORT_URL_LENGTH
 )
-from .error_handlers import InvalidAPIUsage
+from .error_handlers import NameAlreadyExists, IncorrectName
 
 
 class URLMap(db.Model):
@@ -17,15 +16,13 @@ class URLMap(db.Model):
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
 
     @staticmethod
-    def __get_unique_short_id(segment_length):
-        return ''.join(
-            random.choices(AVAILABLE_CHARS_FOR_SHORT_ID, k=segment_length)
+    def from_dict(data):
+        urlmap = URLMap()
+        urlmap.original = data['url']
+        urlmap.short = (
+            data['custom_id'] if 'custom_id' in data and data['custom_id'] else None
         )
-
-    def from_dict(self, data):
-        for field in ['original', 'short']:
-            if field in data:
-                setattr(self, field, data[field])
+        return urlmap
 
     @staticmethod
     def get(short_id):
@@ -33,10 +30,7 @@ class URLMap(db.Model):
 
     @staticmethod
     def get_or_404(short_id):
-        data = URLMap.get(short_id)
-        if not data:
-            raise InvalidAPIUsage('Указанный id не найден', HTTPStatus.NOT_FOUND)
-        return data
+        return URLMap.query.filter_by(short=short_id).first_or_404()
 
     @staticmethod
     def is_short_id_correct(short_id):
@@ -47,7 +41,11 @@ class URLMap(db.Model):
 
     @staticmethod
     def generate_short_id():
-        short_id = URLMap.__get_unique_short_id(MAX_SHORT_URL_LENGTH)
+        short_id = ''.join(
+            random.choices(
+                AVAILABLE_CHARS_FOR_SHORT_ID,
+                k=MAX_SHORT_URL_LENGTH)
+        )
         if not URLMap.get(short_id):
             return short_id
         raise ValueError(
@@ -58,7 +56,7 @@ class URLMap(db.Model):
         if not self.short:
             self.short = URLMap.generate_short_id()
         elif URLMap.get(self.short):
-            raise ValueError(
+            raise NameAlreadyExists(
                 'Имя "{}" уже занято.'.format(self.short)
             )
         if URLMap.is_short_id_correct(self.short):
@@ -66,6 +64,6 @@ class URLMap(db.Model):
             db.session.commit()
             return self
         else:
-            raise ValueError(
+            raise IncorrectName(
                 'Указано недопустимое имя для короткой ссылки'
             )
